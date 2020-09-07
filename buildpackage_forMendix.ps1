@@ -1,11 +1,3 @@
-Param(
-    [Parameter(Mandatory=$true)]
-    [string]$version,
-    [switch]$pre
-)
+$version = "1.0.1-mx"
 
-$buildDate = (Get-Date).ToUniversalTime().ToString("yyyyMMddHHmmss")
-$versionSuffix = ""
-if ($pre.IsPresent) { $versionSuffix = "-pre$BuildDate" }
-
-.\nuget.exe Pack nuget.package\MendixBinaries.nuspec -Version $version$versionSuffix -NoPackageAnalysis
+.\nuget.exe Pack nuget.package\MendixBinaries.nuspec -Version $version -NoPackageAnalysis
