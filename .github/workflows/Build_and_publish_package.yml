@@ -3,11 +3,10 @@ name: Build and Deploy Packages
 on: [push]
 
 env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  # Package Version to build to
   PACKAGE_VER: 1.0.1-mx
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: RelWithDebInfo
-  NUGETTOKEN: ${{ secrets.NUGET_TOKEN }}
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally
@@ -29,7 +28,7 @@ jobs:
       # Build project using powershell script
       run: |
         powershell .\build.libgit2.ps1
-        powershell .\buildpackage_forMendix.ps1 -version 1.0.1-mx
+        powershell .\buildpackage_forMendix.ps1 -version ${PACKAGE_VER}
         nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/MarcellvanRooyen/index.json" -UserName MarcellVanRooyen -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
     
