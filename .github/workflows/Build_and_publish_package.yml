@@ -15,19 +15,18 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
-    - name: Update git submodule
-      # ensure that the libgit2 linkage is correct
-      run: |
-        git submodule init
-        git submodule update
-
-    - name: Build & Deploy Package
+      with:
+        submodules: recursive    
+    - name: Build project
       # Build project using powershell script
       run: |
-        powershell .\build.libgit2.ps1
-        powershell .\buildpackage_forMendix.ps1 -version 1.0.1-mx
+        .\build.libgit2.ps1
+        .\buildpackage_forMendix.ps1 -version 1.101.1
+      shell: pwsh
+    - name: Publish package      
+      run: |
         nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/MarcellvanRooyen/index.json" -UserName MarcellVanRooyen -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
+      shell: pwsh
     
      
