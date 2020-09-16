@@ -116,7 +116,7 @@ try {
     cd $configuration
     Assert-Consistent-Naming "$binaryFilename.dll" "*.dll"
     Run-Command -Quiet { & rm *.exp }
-    Run-Command -Quiet { & rm $x86Directory\* }
+    Run-Command -Quiet { & rm $x86Directory\* -ErrorAction SilentlyContinue }
     Run-Command -Quiet { & mkdir -fo $x86Directory }
     Run-Command -Quiet -Fatal { & copy -fo * $x86Directory -Exclude *.lib }
 
