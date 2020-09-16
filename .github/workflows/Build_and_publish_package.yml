@@ -25,9 +25,9 @@ jobs:
         .\buildpackage_forMendix.ps1 -version 1.101.1
       shell: powershell
       # Publish the package to github actions
+      # We add the github source so that we can authenticate correctly to github packages with both a username and a password
     - name: Publish package      
       run: |
-      # We add the github source so that we can authenticate correctly to github packages with both a username and a password
         nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/MarcellvanRooyen/index.json" -UserName MarcellVanRooyen -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
       shell: powershell
