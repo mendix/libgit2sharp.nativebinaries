@@ -3,7 +3,8 @@ Param(
     [string]$version
 )
 
-Copy-Item -Recurse -Force -Path ".\nuget.package\runtimes\*" -Destination ".\mx_nuget.package\runtimes\" 
+Remove-Item .\mx_nuget.package\runtimes\* -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path .\nuget.package\runtimes\* .\mx_nuget.package\runtimes\ -Recurse -Force
 
 .\nuget.exe Pack mx_nuget.package\MendixBinaries.nuspec -Version $version -NoPackageAnalysis
 
