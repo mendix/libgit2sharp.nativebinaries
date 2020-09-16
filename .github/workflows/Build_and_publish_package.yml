@@ -16,7 +16,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: recursive    
+        submodules: recursive   
+    - name: Update git submodule
+      # ensure that the libgit2 linkage is correct
+      run: |
+        git submodule init
+        git submodule update        
     - name: Build project
       # Build project using powershell script
       run: |
