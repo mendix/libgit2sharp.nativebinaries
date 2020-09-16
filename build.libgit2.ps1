@@ -107,7 +107,7 @@ try {
     $ctest = Join-Path (Split-Path -Parent $cmake) "ctest.exe"
 
     Write-Output "Building 32-bit..."
-    Run-Command -Quiet { & remove-item build -recurse -force }
+    Run-Command -Quiet { & remove-item build -recurse -force -ErrorAction SilentlyContinue }
     Run-Command -Quiet { & mkdir build }
     cd build
     Run-Command -Quiet -Fatal { & $cmake -G "Visual Studio $vs" -A Win32 -D ENABLE_TRACE=ON -D "BUILD_CLAR=$build_clar" -D "LIBGIT2_FILENAME=$binaryFilename" .. }
