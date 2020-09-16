@@ -14,6 +14,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
+    # Checkout repo into build area
     - uses: actions/checkout@v2
       with:
         submodules: recursive   
@@ -23,8 +24,10 @@ jobs:
         .\build.libgit2.ps1
         .\buildpackage_forMendix.ps1 -version 1.101.1
       shell: powershell
+      # Publish the package to github actions
     - name: Publish package      
       run: |
+      # We add the github source so that we can authenticate correctly to github packages with both a username and a password
         nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/MarcellvanRooyen/index.json" -UserName MarcellVanRooyen -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
       shell: powershell
