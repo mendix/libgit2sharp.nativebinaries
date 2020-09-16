@@ -1,3 +1,0 @@
-<Project>
-  <Import Project="$(MSBuildThisFileDirectory)\..\build\Mendix.LibGit2Sharp.NativeBinaries.props" />
-</Project>

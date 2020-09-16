@@ -16,7 +16,7 @@
 	<file src="buildMultiTargeting/**/*.*" />
 
     <file src="../nuget.package/build/LibGit2Sharp.NativeBinaries.props" target="build/Mendix.LibGit2Sharp.NativeBinaries.props" />
-    <file src="../nuget.package/build/LibGit2Sharp.NativeBinaries.props" target="build/net46/Mendix.LibGit2Sharp.NativeBinaries.props" />
+    <file src="../nuget.package/build/net46/LibGit2Sharp.NativeBinaries.props" target="build/net46/Mendix.LibGit2Sharp.NativeBinaries.props" />
 
     <file src="../nuget.package/libgit2/libgit2.license.txt" target="libgit2" />
     <file src="../nuget.package/libgit2/libgit2_hash.txt" target="libgit2" />

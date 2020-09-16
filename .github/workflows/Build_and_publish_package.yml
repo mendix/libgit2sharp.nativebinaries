@@ -22,11 +22,11 @@ jobs:
       run: |
         .\build.libgit2.ps1
         .\buildpackage_forMendix.ps1 -version 1.101.1
-      shell: pwsh
+      shell: powershell
     - name: Publish package      
       run: |
         nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/MarcellvanRooyen/index.json" -UserName MarcellVanRooyen -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
-      shell: pwsh
+      shell: powershell
     
      
