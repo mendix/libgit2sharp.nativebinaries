@@ -22,7 +22,7 @@ jobs:
       # Build project using powershell script
       run: |
         .\build.libgit2.ps1
-        .\mx_nuget.package\mx_buildpackage.ps1 -version 1.101.2
+        .\mx_nuget.package\mx_buildpackage.ps1 -version 1.101.3
       shell: powershell
       # Publish the package to github actions
       # We add the github source so that we can authenticate correctly to github packages with both a username and a password
