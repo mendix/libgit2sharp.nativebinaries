@@ -19,6 +19,6 @@
 	<file src="../nuget.package/libgit2/LibGit2Sharp.dll.config" target="libgit2" />
     <file src="../nuget.package/libgit2/libgit2.license.txt" target="libgit2" />
     <file src="../nuget.package/libgit2/libgit2_hash.txt" target="libgit2" />
-    <file src="../nuget.package/runtimes/**/*.*" />
+    <file src="../nuget.package/runtimes/**/*.*" target="runtimes"/>
   </files>  
 </package>
