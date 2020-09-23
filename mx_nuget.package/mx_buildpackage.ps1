@@ -3,5 +3,5 @@ Param(
     [string]$version
 )
 
-nuget.exe Pack .\MendixBinaries.nuspec -Version $version -NoPackageAnalysis
+.\nuget.exe Pack .\mx_nuget.package\MendixBinaries.nuspec -Version $version -NoPackageAnalysis
 
