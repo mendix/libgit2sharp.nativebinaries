@@ -2,7 +2,7 @@
 .SYNOPSIS
     Builds a version of libgit2 and copies it to the nuget packaging directory.
 .PARAMETER vs
-    Version of Visual Studio project files to generate. Cmake supports "10" (default), "11" and "12".
+    Version of Visual Studio project files to generate. The default is "16" (Visual Studio 2019).
 .PARAMETER test
     If set, run the libgit2 tests on the desired version.
 .PARAMETER debug
@@ -10,7 +10,7 @@
 #>
 
 Param(
-    [string]$vs = '10',
+    [string]$vs = '16',
     [string]$libgit2Name = '',
     [switch]$test,
     [switch]$debug
@@ -107,30 +107,30 @@ try {
     $ctest = Join-Path (Split-Path -Parent $cmake) "ctest.exe"
 
     Write-Output "Building 32-bit..."
-    Run-Command -Quiet { & remove-item build -recurse -force }
+    Run-Command -Quiet { & remove-item build -recurse -force -ErrorAction SilentlyContinue }
     Run-Command -Quiet { & mkdir build }
     cd build
-    Run-Command -Quiet -Fatal { & $cmake -G "Visual Studio $vs" -D ENABLE_TRACE=ON -D "BUILD_CLAR=$build_clar" -D "LIBGIT2_FILENAME=$binaryFilename" .. }
+    Run-Command -Quiet -Fatal { & $cmake -G "Visual Studio $vs" -A Win32 -D ENABLE_TRACE=ON -D "BUILD_CLAR=$build_clar" -D "LIBGIT2_FILENAME=$binaryFilename" .. }
     Run-Command -Quiet -Fatal { & $cmake --build . --config $configuration }
     if ($test.IsPresent) { Run-Command -Quiet -Fatal { & $ctest -V . } }
     cd $configuration
     Assert-Consistent-Naming "$binaryFilename.dll" "*.dll"
     Run-Command -Quiet { & rm *.exp }
-    Run-Command -Quiet { & rm $x86Directory\* }
+    Run-Command -Quiet { & rm $x86Directory\* -ErrorAction SilentlyContinue }
     Run-Command -Quiet { & mkdir -fo $x86Directory }
     Run-Command -Quiet -Fatal { & copy -fo * $x86Directory -Exclude *.lib }
 
     Write-Output "Building 64-bit..."
-    cd ..
+    cd ../..
     Run-Command -Quiet { & mkdir build64 }
     cd build64
-    Run-Command -Quiet -Fatal { & $cmake -G "Visual Studio $vs Win64" -D THREADSAFE=ON -D ENABLE_TRACE=ON -D "BUILD_CLAR=$build_clar" -D "LIBGIT2_FILENAME=$binaryFilename" ../.. }
+    Run-Command -Quiet -Fatal { & $cmake -G "Visual Studio $vs" -A x64 -D THREADSAFE=ON -D ENABLE_TRACE=ON -D "BUILD_CLAR=$build_clar" -D "LIBGIT2_FILENAME=$binaryFilename" .. }
     Run-Command -Quiet -Fatal { & $cmake --build . --config $configuration }
     if ($test.IsPresent) { Run-Command -Quiet -Fatal { & $ctest -V . } }
     cd $configuration
     Assert-Consistent-Naming "$binaryFilename.dll" "*.dll"
     Run-Command -Quiet { & rm *.exp }
-    Run-Command -Quiet { & rm $x64Directory\* }
+    Run-Command -Quiet { & rm $x64Directory\* -ErrorAction SilentlyContinue  }
     Run-Command -Quiet { & mkdir -fo $x64Directory }
     Run-Command -Quiet -Fatal { & copy -fo * $x64Directory -Exclude *.lib }
 
