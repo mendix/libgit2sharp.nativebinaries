@@ -1,10 +1,14 @@
 name: Build and Deploy Packages
 
-on: [push]
+on:
+  push:
+    branches:
+      - master
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: RelWithDebInfo
+
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally
@@ -17,7 +21,8 @@ jobs:
     # Checkout repo into build area
     - uses: actions/checkout@v2
       with:
-        submodules: recursive   
+        submodules: recursive
+        
     - name: Build project
       # Build project using powershell script
       run: |
@@ -26,10 +31,15 @@ jobs:
       shell: powershell
       # Publish the package to github actions
       # We add the github source so that we can authenticate correctly to github packages with both a username and a password
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: nuget package
+        path: ${{ github.workspace }}/**/*.nupkg
+      
     - name: Publish package      
       run: |
         nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/Mendix/index.json" -UserName MarcellVanRooyen -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
       shell: powershell
-    
-     
