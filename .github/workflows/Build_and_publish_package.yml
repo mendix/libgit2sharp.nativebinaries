@@ -40,6 +40,6 @@ jobs:
       
     - name: Publish package      
       run: |
-        nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/Mendix/index.json" -UserName MarcellVanRooyen -Password ${{ secrets.GHPACKAGESTOKEN }}
+        nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/Mendix/index.json" -UserName srv-LibGit2sharp-mendix -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
       shell: powershell
