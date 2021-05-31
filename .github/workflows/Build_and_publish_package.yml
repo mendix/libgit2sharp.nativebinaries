@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+  pull_request:
+    branches:
+      - master
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -31,15 +34,19 @@ jobs:
         .\mx_buildpackage.ps1 -version ${{ env.NUPKG_VERSION }}
       shell: powershell
 
-    # Publish the package to github actions
-    # We add the github source so that we can authenticate correctly to github packages with both a username and a password
+    # Upload the NuGet package as an artifact if the job was successful
+    # It's not being published yet, but can already be inspected, for example, on pull request validation
     - name: Upload build artifacts
       uses: actions/upload-artifact@v2
       with:
         name: nuget package
         path: ${{ github.workspace }}/**/*.nupkg
 
+    # Publish the package to github actions
+    # We add the github source so that we can authenticate correctly to github packages with both a username and a password
+    # We only publish NuGet package if the pipeline is run on `master` branch as a result of a push
     - name: Publish package
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       run: |
         nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/Mendix/index.json" -UserName ${{ secrets.GHPACKAGESUSER }} -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
