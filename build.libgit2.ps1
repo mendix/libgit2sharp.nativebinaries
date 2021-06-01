@@ -22,6 +22,7 @@ $projectDirectory = Split-Path $MyInvocation.MyCommand.Path
 $libgit2Directory = Join-Path $projectDirectory "libgit2"
 $x86Directory = Join-Path $projectDirectory "nuget.package\runtimes\win-x86\native"
 $x64Directory = Join-Path $projectDirectory "nuget.package\runtimes\win-x64\native"
+$arm64Directory = Join-Path $projectDirectory "nuget.package\runtimes\win-arm64\native"
 $hashFile = Join-Path $projectDirectory "nuget.package\libgit2\libgit2_hash.txt"
 $sha = Get-Content $hashFile 
 
@@ -106,7 +107,7 @@ try {
     $cmake = Find-CMake
     $ctest = Join-Path (Split-Path -Parent $cmake) "ctest.exe"
 
-    Write-Output "Building 32-bit..."
+    Write-Output "Building x86..."
     Run-Command -Quiet { & remove-item build -recurse -force -ErrorAction SilentlyContinue }
     Run-Command -Quiet { & mkdir build }
     cd build
@@ -120,7 +121,7 @@ try {
     Run-Command -Quiet { & mkdir -fo $x86Directory }
     Run-Command -Quiet -Fatal { & copy -fo * $x86Directory -Exclude *.lib }
 
-    Write-Output "Building 64-bit..."
+    Write-Output "Building x64..."
     cd ../..
     Run-Command -Quiet { & mkdir build64 }
     cd build64
@@ -133,6 +134,20 @@ try {
     Run-Command -Quiet { & rm $x64Directory\* -ErrorAction SilentlyContinue  }
     Run-Command -Quiet { & mkdir -fo $x64Directory }
     Run-Command -Quiet -Fatal { & copy -fo * $x64Directory -Exclude *.lib }
+
+    Write-Output "Building arm64..."
+    cd ../..
+    Run-Command -Quiet { & mkdir buildarm64 }
+    cd buildarm64
+    Run-Command -Quiet -Fatal { & $cmake -G "Visual Studio $vs" -A ARM64 -D THREADSAFE=ON -D ENABLE_TRACE=ON -D USE_SSH=OFF -D "BUILD_CLAR=$build_clar" -D "LIBGIT2_FILENAME=$binaryFilename" .. }
+    Run-Command -Quiet -Fatal { & $cmake --build . --config $configuration }
+    if ($test.IsPresent) { Run-Command -Quiet -Fatal { & $ctest -V . } }
+    cd $configuration
+    Assert-Consistent-Naming "$binaryFilename.dll" "*.dll"
+    Run-Command -Quiet { & rm *.exp }
+    Run-Command -Quiet { & rm $arm64Directory\* -ErrorAction SilentlyContinue  }
+    Run-Command -Quiet { & mkdir -fo $arm64Directory }
+    Run-Command -Quiet -Fatal { & copy -fo * $arm64Directory -Exclude *.lib }
 
     Write-Output "Done!"
 }
