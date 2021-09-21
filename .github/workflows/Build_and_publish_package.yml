@@ -1,17 +1,15 @@
 name: Build and Deploy Packages
 
 on:
+  pull_request:
   push:
     branches:
-      - master
-  pull_request:
-    branches:
-      - master
+      - main
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: 'RelWithDebInfo'
-  NUPKG_VERSION: '1.111.0'
+  NUPKG_VERSION: '1.120.0'
 
 jobs:
   build:
@@ -30,7 +28,7 @@ jobs:
     # Build project using powershell script
     - name: Build project
       run: |
-        .\build.libgit2.ps1
+        .\build.libgit2.ps1 -x64
         .\mx_buildpackage.ps1 -version ${{ env.NUPKG_VERSION }}
       shell: powershell
 
@@ -44,9 +42,9 @@ jobs:
 
     # Publish the package to github actions
     # We add the github source so that we can authenticate correctly to github packages with both a username and a password
-    # We only publish NuGet package if the pipeline is run on `master` branch as a result of a push
+    # We only publish NuGet package if the pipeline is run on `main` branch as a result of a push
     - name: Publish package
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
         nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/Mendix/index.json" -UserName ${{ secrets.GHPACKAGESUSER }} -Password ${{ secrets.GHPACKAGESTOKEN }}
         nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
