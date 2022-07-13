@@ -9,7 +9,7 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: 'RelWithDebInfo'
-  NUPKG_VERSION: '1.142.0'
+  NUPKG_VERSION: '1.142.1'
 
 jobs:
   build:
@@ -29,6 +29,7 @@ jobs:
     - name: Build project
       run: |
         .\build.libgit2.ps1 -x64
+        .\build.libgit2.ps1 -arm64
         .\mx_buildpackage.ps1 -version ${{ env.NUPKG_VERSION }}
       shell: powershell
 
