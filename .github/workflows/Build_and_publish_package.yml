@@ -13,40 +13,81 @@ env:
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
-    # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
+    strategy:
+      matrix:
+        include:
+          - os: windows-2019
+            name: win-x64
+            param: -x64
+          - os: windows-2019
+            name: win-arm64
+            param: -arm64
+          - os: macos-11
+            name: osx-x64
+          - os: macos-11
+            name: osx-arm64
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    env:
+      RID: ${{ matrix.name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Build for Windows
+        if: runner.os == 'Windows'
+        run: ./build.libgit2.ps1 ${{ matrix.param }}
+        shell: powershell
+
+      - name: Build for macOS
+        if: runner.os == 'macOS'
+        run: ./build.libgit2.sh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.name }}
+          path: nuget.package/runtimes/${{ matrix.name }}
+
+  package:
+    name: Create package
+    needs: build
     runs-on: windows-2019
 
     steps:
-    # Checkout repo into build area
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-        
-    # Build project using powershell script
-    - name: Build project
-      run: |
-        .\build.libgit2.ps1 -x64
-        .\build.libgit2.ps1 -arm64
-        .\mx_buildpackage.ps1 -version ${{ env.NUPKG_VERSION }}
-      shell: powershell
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-    # Upload the NuGet package as an artifact if the job was successful
-    # It's not being published yet, but can already be inspected, for example, on pull request validation
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: nuget package
-        path: ${{ github.workspace }}/**/*.nupkg
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: nuget.package/runtimes/
 
-    # Publish the package to github actions
-    # We add the github source so that we can authenticate correctly to github packages with both a username and a password
-    # We only publish NuGet package if the pipeline is run on `main` branch as a result of a push
-    - name: Publish package
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: |
-        nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/Mendix/index.json" -UserName ${{ secrets.GHPACKAGESUSER }} -Password ${{ secrets.GHPACKAGESTOKEN }}
-        nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
-      shell: powershell
+      - name: Create package
+        run: ./mx_buildpackage.ps1 -version ${{ env.NUPKG_VERSION }}
+        shell: powershell
+
+      # Upload the NuGet package as an artifact if the job was successful
+      # It's not being published yet, but can already be inspected, for example, on pull request validation
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuget package
+          path: ${{ github.workspace }}/**/*.nupkg
+
+      # Publish the package to github actions
+      # We add the github source so that we can authenticate correctly to github packages with both a username and a password
+      # We only publish NuGet package if the pipeline is run on `main` branch as a result of a push
+      - name: Publish package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/Mendix/index.json" -UserName ${{ secrets.GHPACKAGESUSER }} -Password ${{ secrets.GHPACKAGESTOKEN }}
+          nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
+        shell: powershell
