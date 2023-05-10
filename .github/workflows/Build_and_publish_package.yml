@@ -1,0 +1,93 @@
+name: Build and Deploy Packages
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: 'RelWithDebInfo'
+  NUPKG_VERSION: '1.164.0'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-2019
+            name: win-x64
+            param: -x64
+          - os: windows-2019
+            name: win-arm64
+            param: -arm64
+          - os: macos-11
+            name: osx-x64
+          - os: macos-11
+            name: osx-arm64
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    env:
+      RID: ${{ matrix.name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Build for Windows
+        if: runner.os == 'Windows'
+        run: ./build.libgit2.ps1 ${{ matrix.param }}
+        shell: powershell
+
+      - name: Build for macOS
+        if: runner.os == 'macOS'
+        run: ./build.libgit2.sh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.name }}
+          path: nuget.package/runtimes/${{ matrix.name }}
+
+  package:
+    name: Create package
+    needs: build
+    runs-on: windows-2019
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: nuget.package/runtimes/
+
+      - name: Create package
+        run: ./mx_buildpackage.ps1 -version ${{ env.NUPKG_VERSION }}
+        shell: powershell
+
+      # Upload the NuGet package as an artifact if the job was successful
+      # It's not being published yet, but can already be inspected, for example, on pull request validation
+      - name: Upload package
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuget package
+          path: ${{ github.workspace }}/**/*.nupkg
+
+      # Publish the package to github actions
+      # We add the github source so that we can authenticate correctly to github packages with both a username and a password
+      # We only publish NuGet package if the pipeline is run on `main` branch as a result of a push
+      - name: Publish package
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          nuget source Add -Name "GitHub" -Source "https://nuget.pkg.github.com/Mendix/index.json" -UserName ${{ secrets.GHPACKAGESUSER }} -Password ${{ secrets.GHPACKAGESTOKEN }}
+          nuget push **/*.nupkg -Source "GitHub" -SkipDuplicate
+        shell: powershell
